@@ -555,6 +555,9 @@ export default function Home() {
         <div className="container mx-auto px-4 text-center">
           <p className="mb-2">관상 - Korean Face Reading</p>
           <p className="text-sm text-gray-400">Ancient wisdom meets modern AI technology</p>
+          <p className="text-sm text-gray-400 mt-2">
+            Contact: <a href="mailto:crowntour@gmail.com" className="text-korean-gold hover:underline">crowntour@gmail.com</a>
+          </p>
           <p className="text-xs text-gray-500 mt-4">For entertainment purposes only</p>
         </div>
       </footer>
