@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 
 // Korean Physiognomy Reading Database
+// Security: PayPal SDK only - no manual payment bypass
 const physiognomyData = {
   overall: [
     "Your face shows strong leadership qualities and determination. You have a noble character with natural charisma.",
