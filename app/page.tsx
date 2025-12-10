@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Korean Physiognomy Reading Database
 const physiognomyData = {
@@ -122,18 +122,8 @@ export default function Home() {
     setShowPayment(true);
   };
 
-  const handlePayment = () => {
-    // Redirect to PayPal payment link
-    const paypalLink = 'https://paypal.me/hankyungglobal/1';
-    window.open(paypalLink, '_blank');
-
-    // Show message that they need to complete payment
-    setShowPayment(false);
-    alert('Please complete the $1 payment via PayPal. Once payment is confirmed, click "Analyze" again to get your reading!');
-  };
-
-  const handlePaymentComplete = async () => {
-    // This function is called after user confirms payment
+  const processAnalysis = async () => {
+    // Process the analysis after payment
     setShowPayment(false);
     setAnalyzing(true);
 
@@ -145,6 +135,49 @@ export default function Home() {
       setAnalyzing(false);
     }, 2500); // 2.5 seconds for realistic "analysis" feel
   };
+
+  // Initialize PayPal SDK buttons when payment modal opens
+  useEffect(() => {
+    if (showPayment && typeof window !== 'undefined' && (window as any).paypal) {
+      const container = document.getElementById('paypal-button-container');
+      if (container) {
+        container.innerHTML = ''; // Clear any existing buttons
+
+        (window as any).paypal.Buttons({
+          createOrder: (data: any, actions: any) => {
+            return actions.order.create({
+              purchase_units: [{
+                amount: {
+                  value: '1.00',
+                  currency_code: 'USD'
+                },
+                description: 'Korean Face Reading Analysis'
+              }],
+              application_context: {
+                shipping_preference: 'NO_SHIPPING',
+                brand_name: 'Korean Face Reading',
+                locale: 'en_US',
+                user_action: 'PAY_NOW'
+              }
+            });
+          },
+          onApprove: async (data: any, actions: any) => {
+            return actions.order.capture().then((details: any) => {
+              // Payment successful - process analysis
+              processAnalysis();
+            });
+          },
+          onError: (err: any) => {
+            console.error('PayPal Error:', err);
+            alert('Payment failed. Please try again or contact support.');
+          },
+          onCancel: () => {
+            console.log('Payment cancelled by user');
+          }
+        }).render('#paypal-button-container');
+      }
+    }
+  }, [showPayment]);
 
   const celebrities = [
     {
@@ -403,43 +436,27 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <p className="text-sm text-blue-800">
-                💡 <strong>How it works:</strong>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-green-800 font-semibold">
+                🌍 International Payments Welcome!
               </p>
-              <ol className="text-sm text-blue-700 mt-2 ml-4 list-decimal space-y-1">
-                <li>Click "Pay with PayPal" below</li>
-                <li>Complete the $1 payment</li>
-                <li>Return here and click "I've Paid - Analyze Now"</li>
-              </ol>
+              <p className="text-xs text-green-700 mt-1">
+                We accept payments from all countries. PayPal will handle currency conversion automatically.
+              </p>
             </div>
 
-            <div className="space-y-3">
-              <button
-                onClick={handlePayment}
-                className="w-full bg-[#0070ba] hover:bg-[#005ea6] text-white py-3 px-6 rounded-lg font-bold flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg"
-              >
-                <span className="text-xl">💳</span>
-                Pay $1 with PayPal
-              </button>
+            {/* PayPal SDK Button Container */}
+            <div id="paypal-button-container" className="mb-4"></div>
 
-              <button
-                onClick={handlePaymentComplete}
-                className="w-full bg-gradient-to-r from-korean-red to-korean-blue text-white py-3 px-6 rounded-lg font-bold hover:shadow-lg transition-all"
-              >
-                ✓ I've Paid - Analyze Now
-              </button>
-
-              <button
-                onClick={() => setShowPayment(false)}
-                className="w-full px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
+            <button
+              onClick={() => setShowPayment(false)}
+              className="w-full px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
 
             <p className="text-xs text-gray-500 mt-4 text-center">
-              Secure payment via PayPal
+              🔒 Secure payment powered by PayPal
             </p>
           </div>
         </div>
